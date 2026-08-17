@@ -1,0 +1,28 @@
+<!-- Webflow → Project Settings → Custom Code → Footer Code -->
+<!-- Order matters: libraries first, then page-transitions.js, then your modules. -->
+
+<script src="https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.17/dist/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/CustomEase.min.js"></script>
+
+<!-- Optional: only if you use scroll-driven animations -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/ScrollTrigger.min.js"></script> -->
+
+<!-- This repo, served from Vercel -->
+<script src="https://YOUR-PROJECT.vercel.app/page-transitions.js"></script>
+
+<!-- Site-specific modules registered after the boilerplate loads -->
+<script>
+  PT.config.defaultTransition = "column-wipe";
+
+  // PT.module({
+  //   name: "hero",
+  //   selector: "[data-hero]",
+  //   init: function (ctx) {
+  //     var tl = gsap.timeline();
+  //     tl.from(ctx.elements, { y: 40, autoAlpha: 0, stagger: PT.config.stagger });
+  //     return function () { tl.kill(); };
+  //   }
+  // });
+</script>

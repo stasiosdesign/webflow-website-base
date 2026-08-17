@@ -1,0 +1,51 @@
+<!-- Webflow → Project Settings → Custom Code → Head Code -->
+
+<link rel="stylesheet" href="https://unpkg.com/lenis@1.3.17/dist/lenis.css">
+
+<style>
+  /* Column wipe transition overlay — lives outside [data-barba="container"] */
+  .transition {
+    z-index: 100;
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    overflow: clip;
+  }
+
+  .transition__panels {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .transition__panel {
+    background-color: #676a6a;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: -100%;
+  }
+
+  .transition__lines {
+    opacity: .1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .transition__line {
+    border-right: 1px solid #fff;
+    width: 100%;
+    height: 100%;
+  }
+
+  .transition__line.is--last {
+    border-right-style: none;
+  }
+</style>

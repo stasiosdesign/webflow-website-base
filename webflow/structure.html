@@ -1,0 +1,43 @@
+<!--
+  Required Webflow page structure.
+
+  - [data-barba="wrapper"] on <body>
+  - [data-barba="container"] on the page's <main>
+  - Nav INSIDE the container (so it swaps), transition overlay OUTSIDE it
+  - [data-barba-namespace] is optional; use it to scope PT.module({ namespace: ... })
+  - [data-page-theme] drives PT.config.themes
+-->
+
+<body data-barba="wrapper" data-page-theme="light">
+
+  <!-- Transition overlay — outside the container so it survives the swap -->
+  <div data-transition-wrap class="transition" data-theme-transition="light">
+    <div class="transition__panels">
+      <div data-transition-column class="transition__panel"></div>
+      <div data-transition-column class="transition__panel"></div>
+      <div data-transition-column class="transition__panel"></div>
+      <div data-transition-column class="transition__panel"></div>
+      <div data-transition-column class="transition__panel"></div>
+    </div>
+    <div class="transition__lines">
+      <div class="transition__line"></div>
+      <div class="transition__line"></div>
+      <div class="transition__line"></div>
+      <div class="transition__line"></div>
+      <div class="transition__line is--last"></div>
+    </div>
+  </div>
+
+  <main data-barba="container" data-barba-namespace="home" data-page-theme="light">
+    <nav data-theme-nav="dark">
+      <a href="/" data-barba-update aria-current="page">Home</a>
+      <a href="/work" data-barba-update>Work</a>
+      <!-- Force a specific transition for one link: -->
+      <a href="/contact" data-barba-update data-transition="fade">Contact</a>
+    </nav>
+
+    <section></section>
+    <section></section>
+  </main>
+
+</body>
