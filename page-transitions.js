@@ -54,7 +54,7 @@ function initAfterEnterFunctions(next) {
 
 
   if(hasLenis){
-    lenis.resize();
+    window.lenis.resize();
   }
 
   if (hasScrollTrigger) {
@@ -158,8 +158,8 @@ barba.hooks.beforeEnter(data => {
     right: 0,
   });
 
-  if (lenis && typeof lenis.stop === "function") {
-    lenis.stop();
+  if (window.lenis && typeof window.lenis.stop === "function") {
+    window.lenis.stop();
   }
 
   initBeforeEnterFunctions(data.next.container);
@@ -182,8 +182,8 @@ barba.hooks.afterEnter(data => {
 
   // Settle
   if(hasLenis){
-    lenis.resize();
-    lenis.start();
+    window.lenis.resize();
+    window.lenis.start();
   }
 
   if(hasScrollTrigger){
@@ -258,8 +258,8 @@ function resetPage(container){
   gsap.set(container, { clearProps: "position,top,left,right" });
 
   if(hasLenis){
-    lenis.resize();
-    lenis.start();
+    window.lenis.resize();
+    window.lenis.start();
   }
 }
 
