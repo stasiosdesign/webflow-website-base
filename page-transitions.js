@@ -74,13 +74,16 @@ function runPageOnceAnimation(next) {
   const tl = gsap.timeline();
 
   tl.call(() => {
-    resetPage(next)
+    resetPage(next);
   }, null, 0);
 
   return tl;
 }
 
 function runPageLeaveAnimation(current, next) {
+  const transitionWrap = document.querySelector("[data-transition-wrap]");
+  const transitionColumns = transitionWrap.querySelectorAll("[data-transition-column]");
+
   const tl = gsap.timeline({
     onComplete: () => { current.remove() }
   });
@@ -90,12 +93,28 @@ function runPageLeaveAnimation(current, next) {
     return tl.set(current, { autoAlpha: 0 });
   }
 
-  tl.to(current, { autoAlpha: 0, duration: 0.4 });
+  tl.set(next, {
+    autoAlpha: 0,
+  }, 0);
+
+  tl.fromTo(transitionColumns, {
+    yPercent: 0
+  },{
+    yPercent: 100,
+    duration: 0.6,
+    stagger: {
+      each: 0.06,
+      from: "end"
+    },
+  }, 0);
 
   return tl;
 }
 
 function runPageEnterAnimation(next){
+  const transitionWrap = document.querySelector("[data-transition-wrap]");
+  const transitionColumns = transitionWrap.querySelectorAll("[data-transition-column]");
+
   const tl = gsap.timeline();
 
   if (reducedMotion) {
@@ -106,12 +125,17 @@ function runPageEnterAnimation(next){
     return new Promise(resolve => tl.call(resolve, null, "pageReady"));
   }
 
-  tl.add("startEnter", 0.6);
+  tl.add("startEnter", 1);
 
-  tl.fromTo(next, {
-    autoAlpha: 0,
-  },{
+  tl.set(next, {
     autoAlpha: 1,
+  }, "startEnter");
+
+  tl.to(transitionColumns, {
+    yPercent: 200,
+    duration: 0.6,
+    stagger: 0.06,
+    overwrite: "auto",
   }, "startEnter");
 
   tl.add("pageReady");
