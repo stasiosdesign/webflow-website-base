@@ -1,21 +1,91 @@
 /**
- * Page Transitions — Webflow / Barba boilerplate
+ * Page Transitions — Barba boilerplate for Webflow
+ * ===========================================================================
+ * Linked from the Webflow footer "External File" slot. JavaScript only —
+ * all CSS and page structure live in Webflow.
+ *
  * ---------------------------------------------------------------------------
- * Linked from the Webflow footer "External File" slot.
+ * DEPENDENCIES — loaded from CDN in the Webflow footer BEFORE this file.
+ * Not bundled here.
  *
- * Expected globals (loaded BEFORE this file, see webflow/footer.html):
- *   - barba        @barba/core 2.10.3   (required)
- *   - gsap         gsap 3.15            (required)
- *   - CustomEase   gsap/CustomEase 3.15 (required)
- *   - Lenis        lenis 1.3.17         (optional — feature detected)
- *   - ScrollTrigger                     (optional — feature detected)
+ *   barba          @barba/core 2.10.3    required
+ *   gsap           gsap 3.15             required
+ *   CustomEase     gsap/CustomEase 3.15  required (registered below)
+ *   Lenis          lenis 1.3.17          optional — feature detected
+ *   ScrollTrigger  gsap/ScrollTrigger    optional — feature detected
  *
- * Public API (window.PT):
- *   PT.module({ name, selector, init })      register a page/site behaviour
- *   PT.transition({ name, once, leave, enter }) register a transition
- *   PT.config                                 tunables
- *   PT.helpers                                shared utilities
- *   PT.lenis                                  live Lenis instance (or null)
+ * Webflow → Project Settings → Custom Code → Footer Code:
+ *
+ *   <script src="https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.min.js"></script>
+ *   <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.17/dist/lenis.min.js"></script>
+ *   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+ *   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/CustomEase.min.js"></script>
+ *   <script src="https://YOUR-PROJECT.vercel.app/page-transitions.js"></script>
+ *
+ * The Lenis stylesheet goes in Head Code. Register site modules in an inline
+ * <script> after this file.
+ *
+ * ---------------------------------------------------------------------------
+ * ATTRIBUTES — added in the Designer via Element Settings → Custom attributes.
+ * Selection is on data-attributes only, never class names, so class naming in
+ * Webflow is entirely free.
+ *
+ *   data-barba="wrapper"      Body. Required.
+ *   data-barba="container"    The element Barba swaps, one per page. Required.
+ *   data-barba-namespace      Optional. Filters PT.module({ namespace: ... }).
+ *   data-page-theme           "light" | "dark". Drives PT.config.themes.
+ *   data-transition           On a link or the container. Picks a registered
+ *                             transition by name.
+ *   data-transition-wrap      Overlay root. Must sit OUTSIDE the container.
+ *   data-transition-column    Animated columns inside the overlay.
+ *   data-theme-transition     Overlay element the theme is written to.
+ *   data-theme-nav            Nav element the theme is written to.
+ *   data-barba-update         Only if the nav sits outside the container.
+ *                             Syncs aria-current and class from the next page.
+ *
+ * ---------------------------------------------------------------------------
+ * PUBLIC API (window.PT)
+ *
+ *   PT.module({ name, selector, init })          register a page behaviour
+ *   PT.transition({ name, once, leave, enter })  register a transition
+ *   PT.config                                    tunables
+ *   PT.helpers                                   shared utilities
+ *   PT.lenis                                     live Lenis instance (or null)
+ *
+ * Both registries are append-only: adding a module or a transition never
+ * requires touching the Barba wiring below.
+ *
+ *   PT.module({
+ *     name: "reveal",
+ *     selector: "[data-reveal]",     // skipped when the page has no match
+ *     init: function (ctx) {         // ctx: { container, elements,
+ *       var tl = gsap.timeline();    //        reducedMotion, lenis }
+ *       tl.from(ctx.elements, { y: 40, autoAlpha: 0, stagger: PT.config.stagger });
+ *       return function () { tl.kill(); };   // optional cleanup
+ *     }
+ *   });
+ *
+ *   PT.transition({
+ *     name: "slide",
+ *     leave: function (ctx) { return gsap.timeline().to(ctx.current, { autoAlpha: 0 }); },
+ *     enter: function (ctx) {
+ *       var tl = gsap.timeline().fromTo(ctx.next, { autoAlpha: 0 }, { autoAlpha: 1 });
+ *       return PT.helpers.readyAt(tl, ctx.next);   // resolve + hand scroll back
+ *     }
+ *   });
+ *
+ * Transition lookup, first match wins: data-transition on the clicked link,
+ * then data-transition on the incoming container, then
+ * PT.config.defaultTransition. Built in: "fade" (default), "column-wipe".
+ *
+ * "column-wipe" expects an overlay styled in Webflow — wrapper fixed and
+ * full-viewport, columns resting one full height ABOVE the viewport. The JS
+ * drives them yPercent 0 → 100 → 200 from there. With no columns present it
+ * degrades to an instant swap.
+ *
+ * ---------------------------------------------------------------------------
+ * DEPLOY — Vercel: no framework, no build command, output directory ".".
+ * Bump a query string on the script tag when shipping changes (?v=2).
  */
 (function (window, document) {
   "use strict";
