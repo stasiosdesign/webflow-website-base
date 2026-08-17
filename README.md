@@ -24,8 +24,10 @@ Loaded from CDN in the Webflow footer — **not** bundled here.
 | `lenis` | 1.3.17 | optional (feature-detected) |
 | `gsap/ScrollTrigger` | 3.15 | optional (feature-detected) |
 
-Lenis is initialised by this file on first load — do **not** initialise it
-separately in the Webflow footer, or you will get two smooth-scroll loops.
+Lenis: if your Webflow footer already creates an instance and assigns it to
+`window.lenis`, this file adopts it. Otherwise it creates one on first load, so
+the transition lifecycle has something to stop, start and resize. Either way you
+end up with exactly one smooth-scroll loop.
 
 ## Deploy
 

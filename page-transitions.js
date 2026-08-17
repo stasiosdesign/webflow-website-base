@@ -40,7 +40,6 @@
     ease: "osmo",
     easeCurve: "0.625, 0.05, 0, 1",
     defaultTransition: "fade",
-    webflow: true, // re-init Webflow's own runtime on every page enter
     lenis: { lerp: 0.165, wheelMultiplier: 1.25 },
     themes: {
       light: { nav: "dark", transition: "light" },
@@ -191,6 +190,14 @@
   function initLenis() {
     if (lenis || !hasLenis) return lenis;
 
+    // If the Webflow footer already created an instance, adopt it rather than
+    // starting a second smooth-scroll loop fighting the first.
+    if (window.lenis instanceof window.Lenis) {
+      lenis = window.lenis;
+      PT.lenis = lenis;
+      return lenis;
+    }
+
     lenis = new window.Lenis(config.lenis);
 
     if (hasScrollTrigger) lenis.on("scroll", window.ScrollTrigger.update);
@@ -229,52 +236,6 @@
 
     var nav = document.querySelector("[data-theme-nav]");
     if (nav) nav.dataset.themeNav = theme.nav;
-  }
-
-  /**
-   * Re-initialise Webflow's own runtime after a container swap.
-   *
-   * Webflow's webflow.js binds IX2 interactions, sliders, tabs, dropdowns, the
-   * navbar, lightbox and form handling once, on real page load. Barba replaces
-   * the container without a load event, so every page after the first arrives
-   * with dead Webflow components unless we rebind them by hand.
-   *
-   * data-wf-page on <html> is how Webflow scopes page-specific IX2 triggers and
-   * CMS behaviour. Barba never touches <html>, so without this the site keeps
-   * running the FIRST page's interactions forever.
-   */
-  function reinitWebflow(data) {
-    if (!config.webflow) return;
-
-    var wf = window.Webflow;
-    if (!wf) return;
-
-    if (data && data.next && data.next.html) {
-      try {
-        var doc = new DOMParser().parseFromString(data.next.html, "text/html");
-        var pageId = doc.documentElement.getAttribute("data-wf-page");
-        if (pageId) document.documentElement.setAttribute("data-wf-page", pageId);
-      } catch (err) {
-        console.error("[PT] could not read data-wf-page from the next page", err);
-      }
-    }
-
-    try {
-      wf.destroy();
-      wf.ready(); // rebinds sliders, tabs, dropdowns, navbar, forms
-
-      // IX2 is not covered by ready() and must be re-initialised explicitly.
-      var ix2 = wf.require && wf.require("ix2");
-      if (ix2 && ix2.init) ix2.init();
-
-      var lightbox = wf.require && wf.require("lightbox");
-      if (lightbox && lightbox.ready) lightbox.ready();
-
-      document.dispatchEvent(new Event("readystatechange"));
-      log("webflow re-initialised");
-    } catch (err) {
-      console.error("[PT] Webflow re-init failed", err);
-    }
   }
 
   /**
@@ -418,11 +379,6 @@
 
     stopScroll();
     applyThemeFrom(data.next.container);
-
-    // Webflow must be rebound before our own modules run, so modules can rely
-    // on sliders/tabs/IX2 already being live on the incoming container.
-    reinitWebflow(data);
-
     runModules("before", data.next.container, data.next.namespace);
   });
 
@@ -509,7 +465,6 @@
       refreshScroll: refreshScroll,
       resetPage: resetPage,
       applyThemeFrom: applyThemeFrom,
-      reinitWebflow: reinitWebflow,
       syncNav: syncNav,
       readyAt: readyAt,
       debounceOnWidthChange: debounceOnWidthChange,
