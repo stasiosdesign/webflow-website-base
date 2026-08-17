@@ -6,7 +6,6 @@ gsap.registerPlugin(CustomEase);
 
 history.scrollRestoration = "manual";
 
-let lenis = null;
 let nextPage = document;
 let onceFunctionsInitialized = false;
 
@@ -33,7 +32,6 @@ gsap.defaults({ ease: "osmo", duration: durationDefault });
 // -----------------------------------------
 
 function initOnceFunctions() {
-  initLenis();
   if (onceFunctionsInitialized) return;
   onceFunctionsInitialized = true;
 
@@ -253,26 +251,6 @@ function applyThemeFrom(container) {
   if (nav) {
     nav.dataset.themeNav = config.nav;
   }
-}
-
-function initLenis() {
-  if (lenis) return; // already created
-  if (!hasLenis) return;
-
-  lenis = new Lenis({
-    lerp: 0.165,
-    wheelMultiplier: 1.25,
-  });
-
-  if (hasScrollTrigger) {
-    lenis.on("scroll", ScrollTrigger.update);
-  }
-
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
-
-  gsap.ticker.lagSmoothing(0);
 }
 
 function resetPage(container){
