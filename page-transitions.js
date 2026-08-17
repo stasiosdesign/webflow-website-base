@@ -80,39 +80,49 @@ function runPageOnceAnimation(next) {
 
 function runPageLeaveAnimation(current, next) {
   const transitionWrap = document.querySelector("[data-transition-wrap]");
-  const transitionColumns = transitionWrap.querySelectorAll("[data-transition-column]");
+  const transitionDark = transitionWrap.querySelector("[data-transition-dark]");
 
   const tl = gsap.timeline({
-    onComplete: () => { current.remove() }
-  });
+    onComplete: () => {
+      current.remove();
+    }
+  })
+
+  CustomEase.create("parallax", "0.7, 0.05, 0.13, 1");
 
   if (reducedMotion) {
     // Immediate swap behavior if user prefers reduced motion
     return tl.set(current, { autoAlpha: 0 });
   }
 
-  tl.set(next, {
-    autoAlpha: 0,
+  tl.set(transitionWrap, {
+    zIndex: 2
+  });
+
+  tl.fromTo(transitionDark, {
+    autoAlpha: 0
+  },{
+    autoAlpha: 0.8,
+    duration: 1.2,
+    ease: "parallax"
   }, 0);
 
-  tl.fromTo(transitionColumns, {
-    yPercent: 0
+  tl.fromTo(current,{
+    y: "0vh"
   },{
-    yPercent: 100,
-    duration: 0.6,
-    stagger: {
-      each: 0.06,
-      from: "end"
-    },
+    y: "-25vh",
+    duration: 1.2,
+    ease: "parallax",
   }, 0);
+
+  tl.set(transitionDark, {
+    autoAlpha: 0,
+  });
 
   return tl;
 }
 
 function runPageEnterAnimation(next){
-  const transitionWrap = document.querySelector("[data-transition-wrap]");
-  const transitionColumns = transitionWrap.querySelectorAll("[data-transition-column]");
-
   const tl = gsap.timeline();
 
   if (reducedMotion) {
@@ -123,17 +133,19 @@ function runPageEnterAnimation(next){
     return new Promise(resolve => tl.call(resolve, null, "pageReady"));
   }
 
-  tl.add("startEnter", 1);
+  tl.add("startEnter", 0);
 
   tl.set(next, {
-    autoAlpha: 1,
-  }, "startEnter");
+    zIndex: 3
+  });
 
-  tl.to(transitionColumns, {
-    yPercent: 200,
-    duration: 0.6,
-    stagger: 0.06,
-    overwrite: "auto",
+  tl.fromTo(next, {
+    y: "100vh"
+  }, {
+    y: "0vh",
+    duration: 1.2,
+    clearProps: "all",
+    ease: "parallax"
   }, "startEnter");
 
   tl.add("pageReady");
