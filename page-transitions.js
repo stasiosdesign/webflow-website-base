@@ -1,12 +1,10 @@
 /**
  * Page Transitions — Barba boilerplate for Webflow
  * ===========================================================================
- * Linked from the Webflow footer "External File" slot. JavaScript only —
- * all CSS and page structure live in Webflow.
+ * JavaScript only. CSS, page structure and script loading all live in Webflow.
  *
  * ---------------------------------------------------------------------------
- * DEPENDENCIES — loaded from CDN in the Webflow footer BEFORE this file.
- * Not bundled here.
+ * EXPECTED GLOBALS — already loaded before this file runs. Not bundled here.
  *
  *   barba          @barba/core 2.10.3    required
  *   gsap           gsap 3.15             required
@@ -14,21 +12,8 @@
  *   Lenis          lenis 1.3.17          optional — feature detected
  *   ScrollTrigger  gsap/ScrollTrigger    optional — feature detected
  *
- * Webflow → Project Settings → Custom Code → Footer Code:
- *
- *   <script src="https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.min.js"></script>
- *   <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.17/dist/lenis.min.js"></script>
- *   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
- *   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/CustomEase.min.js"></script>
- *   <script src="https://YOUR-PROJECT.vercel.app/page-transitions.js"></script>
- *
- * The Lenis stylesheet goes in Head Code. Register site modules in an inline
- * <script> after this file.
- *
  * ---------------------------------------------------------------------------
- * ATTRIBUTES — added in the Designer via Element Settings → Custom attributes.
- * Selection is on data-attributes only, never class names, so class naming in
- * Webflow is entirely free.
+ * ATTRIBUTES this file selects on. Data-attributes only, never class names.
  *
  *   data-barba="wrapper"      Body. Required.
  *   data-barba="container"    The element Barba swaps, one per page. Required.
@@ -78,14 +63,10 @@
  * then data-transition on the incoming container, then
  * PT.config.defaultTransition. Built in: "fade" (default), "column-wipe".
  *
- * "column-wipe" expects an overlay styled in Webflow — wrapper fixed and
- * full-viewport, columns resting one full height ABOVE the viewport. The JS
- * drives them yPercent 0 → 100 → 200 from there. With no columns present it
- * degrades to an instant swap.
- *
- * ---------------------------------------------------------------------------
- * DEPLOY — Vercel: no framework, no build command, output directory ".".
- * Bump a query string on the script tag when shipping changes (?v=2).
+ * "column-wipe" assumes the overlay is fixed and full-viewport with its columns
+ * resting one full height ABOVE the viewport; it drives them yPercent
+ * 0 → 100 → 200 from there. With no columns present it degrades to an
+ * instant swap.
  */
 (function (window, document) {
   "use strict";
@@ -552,17 +533,8 @@
   }
 
   // ---------------------------------------------------------------------------
-  // YOUR MODULES GO BELOW HERE
-  //
-  // PT.module({
-  //   name: "example",
-  //   selector: "[data-example]",
-  //   init: function (ctx) {
-  //     var tl = gsap.timeline();
-  //     tl.from(ctx.elements, { y: 40, autoAlpha: 0, stagger: PT.config.stagger });
-  //     return function () { tl.kill(); };
-  //   }
-  // });
+  // YOUR MODULES AND TRANSITIONS GO BELOW HERE
+  // See the header for PT.module() and PT.transition() signatures.
   // ---------------------------------------------------------------------------
 
 })(window, document);
