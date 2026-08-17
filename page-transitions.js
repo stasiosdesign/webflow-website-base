@@ -6,6 +6,7 @@ gsap.registerPlugin(CustomEase);
 
 history.scrollRestoration = "manual";
 
+let lenis = null;
 let nextPage = document;
 let onceFunctionsInitialized = false;
 
@@ -32,6 +33,7 @@ gsap.defaults({ ease: "osmo", duration: durationDefault });
 // -----------------------------------------
 
 function initOnceFunctions() {
+  initLenis();
   if (onceFunctionsInitialized) return;
   onceFunctionsInitialized = true;
 
@@ -54,7 +56,7 @@ function initAfterEnterFunctions(next) {
 
 
   if(hasLenis){
-    window.lenis.resize();
+    lenis.resize();
   }
 
   if (hasScrollTrigger) {
@@ -170,8 +172,8 @@ barba.hooks.beforeEnter(data => {
     right: 0,
   });
 
-  if (window.lenis && typeof window.lenis.stop === "function") {
-    window.lenis.stop();
+  if (lenis && typeof lenis.stop === "function") {
+    lenis.stop();
   }
 
   initBeforeEnterFunctions(data.next.container);
@@ -194,8 +196,8 @@ barba.hooks.afterEnter(data => {
 
   // Settle
   if(hasLenis){
-    window.lenis.resize();
-    window.lenis.start();
+    lenis.resize();
+    lenis.start();
   }
 
   if(hasScrollTrigger){
@@ -265,13 +267,33 @@ function applyThemeFrom(container) {
   }
 }
 
+function initLenis() {
+  if (lenis) return; // already created
+  if (!hasLenis) return;
+
+  lenis = new Lenis({
+    lerp: 0.165,
+    wheelMultiplier: 1.25,
+  });
+
+  if (hasScrollTrigger) {
+    lenis.on("scroll", ScrollTrigger.update);
+  }
+
+  gsap.ticker.add((time) => {
+    lenis.raf(time * 1000);
+  });
+
+  gsap.ticker.lagSmoothing(0);
+}
+
 function resetPage(container){
   window.scrollTo(0, 0);
   gsap.set(container, { clearProps: "position,top,left,right" });
 
   if(hasLenis){
-    window.lenis.resize();
-    window.lenis.start();
+    lenis.resize();
+    lenis.start();
   }
 }
 
