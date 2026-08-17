@@ -81,8 +81,6 @@ function runPageOnceAnimation(next) {
 }
 
 function runPageLeaveAnimation(current, next) {
-  const transitionWrap = document.querySelector("[data-transition-wrap]");
-  const transitionDark = transitionWrap.querySelector("[data-transition-dark]");
 
   const tl = gsap.timeline({
     onComplete: () => {
@@ -90,36 +88,16 @@ function runPageLeaveAnimation(current, next) {
     }
   })
 
-  CustomEase.create("parallax", "0.7, 0.05, 0.13, 1");
-
   if (reducedMotion) {
     // Immediate swap behavior if user prefers reduced motion
     return tl.set(current, { autoAlpha: 0 });
   }
 
-  tl.set(transitionWrap, {
-    zIndex: 2
-  });
-
-  tl.fromTo(transitionDark, {
-    autoAlpha: 0
-  },{
-    autoAlpha: 0.8,
-    duration: 1.2,
-    ease: "parallax"
-  }, 0);
-
-  tl.fromTo(current,{
-    y: "0vh"
-  },{
-    y: "-25vh",
-    duration: 1.2,
-    ease: "parallax",
-  }, 0);
-
-  tl.set(transitionDark, {
+  tl.to(current, {
     autoAlpha: 0,
-  });
+    ease: "power1.in",
+    duration: 0.5,
+  }, 0);
 
   return tl;
 }
@@ -137,18 +115,23 @@ function runPageEnterAnimation(next){
 
   tl.add("startEnter", 0);
 
-  tl.set(next, {
-    zIndex: 3
-  });
-
   tl.fromTo(next, {
-    y: "100vh"
+    autoAlpha: 0,
   }, {
-    y: "0vh",
-    duration: 1.2,
-    clearProps: "all",
-    ease: "parallax"
+    autoAlpha: 1,
+    ease: "power1.inOut",
+    duration: 0.75,
   }, "startEnter");
+
+  tl.fromTo(next.querySelector('h1'), {
+    yPercent: 25,
+    autoAlpha: 0,
+  }, {
+    yPercent: 0,
+    autoAlpha: 1,
+    ease: "expo.out",
+    duration: 1,
+  }, "< 0.3");
 
   tl.add("pageReady");
   tl.call(resetPage, [next], "pageReady");
