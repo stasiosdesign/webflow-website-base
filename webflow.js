@@ -11,6 +11,11 @@ let onceFunctionsInitialized = false;
 
 const hasLenis = typeof window.Lenis !== "undefined";
 const hasScrollTrigger = typeof window.ScrollTrigger !== "undefined";
+const hasDraggable = typeof window.Draggable !== "undefined";
+const hasInertia = typeof window.InertiaPlugin !== "undefined";
+
+if (hasDraggable) gsap.registerPlugin(Draggable);
+if (hasInertia) gsap.registerPlugin(InertiaPlugin);
 
 const rmMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
 let reducedMotion = rmMQ.matches;
@@ -38,6 +43,7 @@ function initOnceFunctions() {
 
   // Runs once on first load
   // if (has('[data-something]')) initSomething();
+  if (has('[data-overlap-slider-init]')) initOverlappingSlider();
 }
 
 function initBeforeEnterFunctions(next) {
@@ -45,6 +51,7 @@ function initBeforeEnterFunctions(next) {
 
   // Runs before the enter animation
   // if (has('[data-something]')) initSomething();
+  if (has('[data-overlap-slider-init]')) initOverlappingSlider();
 }
 
 function initAfterEnterFunctions(next) {
@@ -178,6 +185,13 @@ barba.hooks.beforeEnter(data => {
 
   initBeforeEnterFunctions(data.next.container);
   applyThemeFrom(data.next.container);
+});
+
+barba.hooks.beforeLeave(() => {
+  // Tear down page functions here, not in afterLeave: with sync transitions
+  // beforeEnter fires before afterLeave, so cleaning up later would destroy
+  // the incoming page's instances instead of the outgoing ones.
+  destroyOverlappingSliders();
 });
 
 barba.hooks.afterLeave(() => {
@@ -391,19 +405,28 @@ function resetTurnstile() {
 // YOUR FUNCTIONS GO BELOW HERE
 // -----------------------------------------
 
-gsap.registerPlugin(Draggable, InertiaPlugin);
+let overlappingSliderCleanups = [];
 
 function initOverlappingSlider() {
-  const inits = document.querySelectorAll('[data-overlap-slider-init]');
+  if (!hasDraggable) {
+    console.warn("OverlappingSlider: Draggable is not loaded.");
+    return;
+  }
+
+  const inits = nextPage.querySelectorAll('[data-overlap-slider-init]');
   if (!inits.length) return;
 
   inits.forEach(setupOverlappingSlider);
 
   function setupOverlappingSlider(init) {
+    // Guard against double-init if the registry runs twice for one container
+    if (init.dataset.overlapSliderReady === "true") return;
+    init.dataset.overlapSliderReady = "true";
+
     // --- attributes with defaults
     const minScale = +(init.getAttribute('data-scale')  ?? 0.45);
     const maxRotation = +(init.getAttribute('data-rotate') ?? -8);
-    const inertia = true;
+    const inertia = hasInertia;
 
     const wrap = init.querySelector('[data-overlap-slider-collection]');
     const slider = init.querySelector('[data-overlap-slider-list]');
@@ -555,10 +578,22 @@ function initOverlappingSlider() {
 
     // initial layout
     recalc();
+
+    // Teardown, run from beforeLeave so nothing leaks across page transitions
+    overlappingSliderCleanups.push(function () {
+      window.removeEventListener("keydown", onKey);
+      ro.disconnect();
+      io.disconnect();
+      if (draggable) draggable.kill();
+      gsap.killTweensOf(slider);
+      gsap.killTweensOf(slides);
+      delete init.dataset.overlapSliderReady;
+    });
   }
 }
 
-// Initialize Overlapping Slider
-document.addEventListener("DOMContentLoaded", function () {
-  initOverlappingSlider();
-});
+function destroyOverlappingSliders() {
+  overlappingSliderCleanups.splice(0).forEach(function (cleanup) {
+    cleanup();
+  });
+}
