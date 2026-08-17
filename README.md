@@ -3,18 +3,22 @@
 Barba.js page-transition boilerplate for Webflow, served as a single external
 file from Vercel and linked in the project's footer code slot.
 
+**JavaScript only.** All CSS lives in Webflow — Site/Page Settings or the
+Designer. Nothing here styles anything, and the JS selects on data-attributes
+only, never on class names, so you are free to name classes however you like.
+
 ## Files
 
 | Path | Purpose |
 | --- | --- |
 | `page-transitions.js` | The deployable file. No build step — link it directly. |
-| `webflow/head.html` | Head code: Lenis stylesheet + transition overlay CSS. |
 | `webflow/footer.html` | Footer code: CDN libraries, this file, your modules. |
-| `webflow/structure.html` | Required DOM structure and data attributes. |
+| `webflow/structure.html` | Data-attribute contract. Reference, not markup to paste. |
 
 ## Dependencies
 
-Loaded from CDN in the Webflow footer — **not** bundled here.
+Loaded from CDN in the Webflow footer — **not** bundled here. The Lenis
+stylesheet (`lenis@1.3.17/dist/lenis.css`) goes in Webflow's Head Code.
 
 | Library | Version | Required |
 | --- | --- | --- |
@@ -98,6 +102,13 @@ Selection order, first match wins:
 3. `PT.config.defaultTransition`
 
 Built in: `fade` (default), `column-wipe`.
+
+`column-wipe` needs an overlay built and styled in Webflow, marked up with
+`[data-transition-wrap]` and `[data-transition-column]` — see
+[`webflow/structure.html`](webflow/structure.html). It expects the wrapper to be
+fixed and full-viewport, and the columns to sit one full height *above* the
+viewport at rest; the JS drives them `yPercent` 0 → 100 → 200 from there. If no
+columns are found it degrades to an instant swap rather than breaking.
 
 ## Config
 
