@@ -397,5 +397,3 @@ function setNavigationState(isActive) {
   else lenis.start();
 }
 
-
-// deploy-check: production 131207
