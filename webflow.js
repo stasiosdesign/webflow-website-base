@@ -46,7 +46,6 @@ function initBeforeEnterFunctions(next) {
   
   // Runs before the enter animation
   // if (has('[data-something]')) initSomething();
-  if (has('[data-navigation-status]')) initScalingHamburgerNavigation();
 }
 
 function initAfterEnterFunctions(next) {
@@ -341,59 +340,4 @@ function initBarbaNavUpdate(data) {
 // -----------------------------------------
 // YOUR FUNCTIONS GO BELOW HERE
 // -----------------------------------------
-
-let navEscListenerBound = false;
-
-function initScalingHamburgerNavigation() {
-  // Scoped to the incoming container. The nav lives inside [data-barba=
-  // container], so during a swap both the outgoing and incoming navs are in
-  // the DOM — querying document would also bind the one about to be removed.
-  const root = nextPage || document;
-
-  // Toggle Navigation
-  root.querySelectorAll('[data-navigation-toggle="toggle"]').forEach(toggleBtn => {
-    toggleBtn.addEventListener('click', () => {
-      const navStatusEl = document.querySelector('[data-navigation-status]');
-      if (!navStatusEl) return;
-      setNavigationState(navStatusEl.getAttribute('data-navigation-status') === 'not-active');
-    });
-  });
-
-  // Close Navigation
-  root.querySelectorAll('[data-navigation-toggle="close"]').forEach(closeBtn => {
-    closeBtn.addEventListener('click', () => {
-      setNavigationState(false);
-    });
-  });
-
-  // Key ESC - Close Navigation
-  // Bound once. This listener sits on document, which survives every swap, so
-  // rebinding per page would stack another listener on each navigation. The
-  // nav element is resolved at event time, so it always targets the live one.
-  if (navEscListenerBound) return;
-  navEscListenerBound = true;
-
-  document.addEventListener('keydown', e => {
-    if (e.keyCode === 27) {
-      const navStatusEl = document.querySelector('[data-navigation-status]');
-      if (!navStatusEl) return;
-      if (navStatusEl.getAttribute('data-navigation-status') === 'active') {
-        setNavigationState(false);
-      }
-    }
-  });
-}
-
-// Opens/closes the nav and keeps Lenis in step, so the page behind a
-// full-screen overlay cannot scroll while it is open.
-function setNavigationState(isActive) {
-  const navStatusEl = document.querySelector('[data-navigation-status]');
-  if (!navStatusEl) return;
-
-  navStatusEl.setAttribute('data-navigation-status', isActive ? 'active' : 'not-active');
-
-  if (!lenis) return;
-  if (isActive) lenis.stop();
-  else lenis.start();
-}
 
