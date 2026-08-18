@@ -28,7 +28,7 @@ gsap.defaults({ ease: "osmo", duration: durationDefault });
 
 
 
-// ----------------------------------
+// ---------------------------
 // FUNCTION REGISTRY
 // -----------------------------
 
