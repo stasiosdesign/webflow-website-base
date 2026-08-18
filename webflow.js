@@ -39,7 +39,6 @@ function initOnceFunctions() {
   
   // Runs once on first load
   // if (has('[data-something]')) initSomething();
-  if (has('[data-navigation-status]')) initScalingHamburgerNavigation();
 }
 
 function initBeforeEnterFunctions(next) {
@@ -47,10 +46,7 @@ function initBeforeEnterFunctions(next) {
   
   // Runs before the enter animation
   // if (has('[data-something]')) initSomething();
-
-  // Not gated by has(): that queries the incoming container, and the nav
-  // lives outside it. The function guards on its own.
-  closeNavigationForTransition();
+  if (has('[data-navigation-status]')) initScalingHamburgerNavigation();
 }
 
 function initAfterEnterFunctions(next) {
@@ -346,9 +342,16 @@ function initBarbaNavUpdate(data) {
 // YOUR FUNCTIONS GO BELOW HERE
 // -----------------------------------------
 
+let navEscListenerBound = false;
+
 function initScalingHamburgerNavigation() {
+  // Scoped to the incoming container. The nav lives inside [data-barba=
+  // container], so during a swap both the outgoing and incoming navs are in
+  // the DOM — querying document would also bind the one about to be removed.
+  const root = nextPage || document;
+
   // Toggle Navigation
-  document.querySelectorAll('[data-navigation-toggle="toggle"]').forEach(toggleBtn => {
+  root.querySelectorAll('[data-navigation-toggle="toggle"]').forEach(toggleBtn => {
     toggleBtn.addEventListener('click', () => {
       const navStatusEl = document.querySelector('[data-navigation-status]');
       if (!navStatusEl) return;
@@ -357,13 +360,19 @@ function initScalingHamburgerNavigation() {
   });
 
   // Close Navigation
-  document.querySelectorAll('[data-navigation-toggle="close"]').forEach(closeBtn => {
+  root.querySelectorAll('[data-navigation-toggle="close"]').forEach(closeBtn => {
     closeBtn.addEventListener('click', () => {
       setNavigationState(false);
     });
   });
 
   // Key ESC - Close Navigation
+  // Bound once. This listener sits on document, which survives every swap, so
+  // rebinding per page would stack another listener on each navigation. The
+  // nav element is resolved at event time, so it always targets the live one.
+  if (navEscListenerBound) return;
+  navEscListenerBound = true;
+
   document.addEventListener('keydown', e => {
     if (e.keyCode === 27) {
       const navStatusEl = document.querySelector('[data-navigation-status]');
@@ -388,13 +397,3 @@ function setNavigationState(isActive) {
   else lenis.start();
 }
 
-// The nav sits outside the barba container, so it survives a page swap and
-// would otherwise stay open over the incoming page.
-//
-// Scroll is deliberately left alone here: beforeEnter has already stopped
-// Lenis for the transition, and afterEnter/resetPage start it again. Calling
-// lenis.start() at this point would let the old page scroll mid-transition.
-function closeNavigationForTransition() {
-  const navStatusEl = document.querySelector('[data-navigation-status]');
-  if (navStatusEl) navStatusEl.setAttribute('data-navigation-status', 'not-active');
-}
