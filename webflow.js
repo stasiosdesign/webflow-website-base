@@ -379,6 +379,11 @@ function initExpandingBottomNav() {
   const nav = document.querySelector("[data-bottom-nav-init]");
   if (!nav) return;
 
+  // Guard: both the registry and the DOM-ready bootstrap call this,
+  // so make the second call a no-op
+  if (nav.dataset.bottomNavReady === "true") return;
+  nav.dataset.bottomNavReady = "true";
+
   const inner = nav.querySelector("[data-bottom-nav-inner]");
   const bar = nav.querySelector("[data-bottom-nav-bar]");
   const panel = nav.querySelector("[data-bottom-nav-panel]");
@@ -525,4 +530,13 @@ function initExpandingBottomNav() {
   toggle.addEventListener("click", toggleNav);
   document.addEventListener("keydown", onKeydown);
   window.addEventListener("resize", onResize);
+}
+
+// Initialize Expanding Bottom Navigation
+// Self-bootstraps like the original snippet so it does not depend on Barba;
+// the registry call in initOnceFunctions is a covered no-op via the guard.
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initExpandingBottomNav);
+} else {
+  initExpandingBottomNav();
 }
