@@ -40,7 +40,6 @@ function initOnceFunctions() {
 
   // Runs once on first load
   // if (has('[data-something]')) initSomething();
-  if (has('[data-stacking-cards-init]')) initStackingStickyCardsBounce();
 }
 
 function initBeforeEnterFunctions(next) {
