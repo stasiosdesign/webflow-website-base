@@ -6,7 +6,6 @@ gsap.registerPlugin(CustomEase);
 
 history.scrollRestoration = "manual";
 
-let lenis = null;
 let nextPage = document;
 let onceFunctionsInitialized = false;
 
