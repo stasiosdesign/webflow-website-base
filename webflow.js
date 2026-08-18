@@ -397,3 +397,5 @@ function setNavigationState(isActive) {
   else lenis.start();
 }
 
+
+// deploy-check: staging 131128
