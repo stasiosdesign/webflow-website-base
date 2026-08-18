@@ -38,6 +38,7 @@ function initOnceFunctions() {
 
   // Runs once on first load
   // if (has('[data-something]')) initSomething();
+  if (has('[data-bottom-nav-init]')) initExpandingBottomNav();
 }
 
 function initBeforeEnterFunctions(next) {
@@ -373,3 +374,155 @@ function resetTurnstile() {
 // -----------------------------------------
 // YOUR FUNCTIONS GO BELOW HERE
 // -----------------------------------------
+
+function initExpandingBottomNav() {
+  const nav = document.querySelector("[data-bottom-nav-init]");
+  if (!nav) return;
+
+  const inner = nav.querySelector("[data-bottom-nav-inner]");
+  const bar = nav.querySelector("[data-bottom-nav-bar]");
+  const panel = nav.querySelector("[data-bottom-nav-panel]");
+  const toggle = nav.querySelector("[data-bottom-nav-toggle]");
+  if (!inner || !bar || !panel || !toggle) return;
+
+  const reveals = panel.querySelectorAll("[data-bottom-nav-reveal]");
+  const barTop = toggle.querySelector(".bottom-nav__toggle-bar.is--top");
+  const barBot = toggle.querySelector(".bottom-nav__toggle-bar.is--btm");
+  const divider = nav.querySelector("[data-bottom-nav-divider]")
+
+  let isOpen = false;
+  let enterEnd = 0;
+  let dimensions = { closedW: 0, closedH: 0, openW: 0, openH: 0 };
+  let tl;
+
+  function measure() {
+    const w = inner.style.width;
+    const h = inner.style.height;
+    inner.style.width = "var(--open-width)";
+    inner.style.height = "auto";
+    const openW = inner.offsetWidth;
+    const openH = inner.offsetHeight;
+    inner.style.width = "var(--closed-width)";
+    const closedW = inner.offsetWidth;
+    inner.style.width = w;
+    inner.style.height = h;
+    return { closedW, closedH: bar.offsetHeight, openW, openH };
+  }
+
+  function applyClosed() {
+    gsap.set(inner, { width: dimensions.closedW, height: dimensions.closedH });
+  }
+
+  function buildTimeline() {
+    tl = gsap.timeline({
+      paused: true,
+      defaults: { ease: "osmo", easeReverse: "power2.inOut" },
+    });
+
+    tl.to(inner, {
+        width: () => dimensions.openW,
+        height: () => dimensions.openH,
+        duration: 0.65
+      }, 0)
+
+      .to(barTop, {
+        y: "0.175em",
+        rotation: 45,
+        duration: 0.4,
+        ease: "back.out(2)",
+        easeReverse: "power3.out"
+      }, 0.05)
+
+      .to(barBot, {
+        y: "-0.175em",
+        rotation: -45,
+        duration: 0.4,
+        ease: "back.out(2)",
+        easeReverse: "power3.out"
+      }, 0.05)
+
+      .set(panel, {
+        autoAlpha: 1
+      }, 0.1)
+
+      .fromTo(reveals, {
+        autoAlpha: 0,
+        yPercent: 100
+      }, {
+        autoAlpha: 1,
+        yPercent: 0,
+        duration: 0.6,
+        stagger: 0.03
+      }, 0.1);
+
+      if(divider) {
+        tl.fromTo(divider, {
+          scaleX: 0,
+          autoAlpha: 0
+        },{
+          scaleX: 1,
+          autoAlpha: 1,
+          duration: 1.1
+        }, 0)
+      }
+
+
+    enterEnd = tl.duration();
+    tl.addPause();
+
+    // Close half
+    tl.to(reveals, { autoAlpha: 0, yPercent: 10, duration: 0.25, stagger: { each: 0.01, from: "end" } })
+      .to(inner, { width: () => dimensions.closedW, height: () => dimensions.closedH, duration: 0.45, ease: "power3.inOut" }, "<")
+      .to([barTop, barBot], { y: 0, rotation: 0, duration: 0.3, ease: "power3.in" }, "<")
+      .set(panel, { autoAlpha: 0 });
+  }
+
+  function setState(open) {
+    isOpen = open;
+    nav.setAttribute("data-bottom-nav-open", String(open));
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.setAttribute("aria-label", open ? "close menu" : "open menu");
+    panel.setAttribute("aria-hidden", String(!open));
+  }
+
+  function toggleNav() {
+    setState(!isOpen);
+    if (isOpen) {
+      tl.invalidate();
+      if (tl.time() >= enterEnd) tl.timeScale(1).restart();
+      else tl.timeScale(1).play();
+    } else if (tl.time() < enterEnd) {
+      tl.timeScale(1).reverse();
+    } else {
+      tl.timeScale(1).play();
+    }
+  }
+
+  function onKeydown(e) {
+    if (e.key === "Escape" && isOpen) {
+      toggleNav();
+      toggle.focus();
+    }
+  }
+
+  let resizeTimer;
+  function onResize() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      dimensions = measure();
+      if (isOpen) gsap.set(inner, { width: dimensions.openW, height: dimensions.openH });
+      else {
+        tl.invalidate();
+        applyClosed();
+      }
+    }, 150);
+  }
+
+  dimensions = measure();
+  applyClosed();
+  buildTimeline();
+
+  toggle.addEventListener("click", toggleNav);
+  document.addEventListener("keydown", onKeydown);
+  window.addEventListener("resize", onResize);
+}
