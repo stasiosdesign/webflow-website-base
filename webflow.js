@@ -47,6 +47,10 @@ function initBeforeEnterFunctions(next) {
   
   // Runs before the enter animation
   // if (has('[data-something]')) initSomething();
+
+  // Not gated by has(): that queries the incoming container, and the nav
+  // lives outside it. The function guards on its own.
+  closeNavigationForTransition();
 }
 
 function initAfterEnterFunctions(next) {
@@ -348,23 +352,14 @@ function initScalingHamburgerNavigation() {
     toggleBtn.addEventListener('click', () => {
       const navStatusEl = document.querySelector('[data-navigation-status]');
       if (!navStatusEl) return;
-      if (navStatusEl.getAttribute('data-navigation-status') === 'not-active') {
-        navStatusEl.setAttribute('data-navigation-status', 'active');
-        // If you use Lenis you can 'stop' Lenis here: Example Lenis.stop();
-      } else {
-        navStatusEl.setAttribute('data-navigation-status', 'not-active');
-        // If you use Lenis you can 'start' Lenis here: Example Lenis.start();
-      }
+      setNavigationState(navStatusEl.getAttribute('data-navigation-status') === 'not-active');
     });
   });
 
   // Close Navigation
   document.querySelectorAll('[data-navigation-toggle="close"]').forEach(closeBtn => {
     closeBtn.addEventListener('click', () => {
-      const navStatusEl = document.querySelector('[data-navigation-status]');
-      if (!navStatusEl) return;
-      navStatusEl.setAttribute('data-navigation-status', 'not-active');
-      // If you use Lenis you can 'start' Lenis here: Example Lenis.start();
+      setNavigationState(false);
     });
   });
 
@@ -374,9 +369,32 @@ function initScalingHamburgerNavigation() {
       const navStatusEl = document.querySelector('[data-navigation-status]');
       if (!navStatusEl) return;
       if (navStatusEl.getAttribute('data-navigation-status') === 'active') {
-        navStatusEl.setAttribute('data-navigation-status', 'not-active');
-       // If you use Lenis you can 'start' Lenis here: Example Lenis.start();
+        setNavigationState(false);
       }
     }
   });
+}
+
+// Opens/closes the nav and keeps Lenis in step, so the page behind a
+// full-screen overlay cannot scroll while it is open.
+function setNavigationState(isActive) {
+  const navStatusEl = document.querySelector('[data-navigation-status]');
+  if (!navStatusEl) return;
+
+  navStatusEl.setAttribute('data-navigation-status', isActive ? 'active' : 'not-active');
+
+  if (!lenis) return;
+  if (isActive) lenis.stop();
+  else lenis.start();
+}
+
+// The nav sits outside the barba container, so it survives a page swap and
+// would otherwise stay open over the incoming page.
+//
+// Scroll is deliberately left alone here: beforeEnter has already stopped
+// Lenis for the transition, and afterEnter/resetPage start it again. Calling
+// lenis.start() at this point would let the old page scroll mid-transition.
+function closeNavigationForTransition() {
+  const navStatusEl = document.querySelector('[data-navigation-status]');
+  if (navStatusEl) navStatusEl.setAttribute('data-navigation-status', 'not-active');
 }
