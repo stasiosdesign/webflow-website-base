@@ -39,7 +39,6 @@ function initOnceFunctions() {
   
   // Runs once on first load
   // if (has('[data-something]')) initSomething();
-  if (has('[data-loading-container]')) initDroppingCardsLoadingAnimation();
 }
 
 function initBeforeEnterFunctions(next) {
@@ -77,6 +76,16 @@ function runPageOnceAnimation(next) {
   tl.call(() => {
     resetPage(next);
   }, null, 0);
+
+  // First load only. Barba reaches this through its once flow, so an in-site
+  // navigation never replays it — only a real page load or a refresh does.
+  //
+  // Queried against document rather than has(): beforeEnter fires before once,
+  // so nextPage is already the incoming container, and the loading overlay
+  // lives outside it.
+  if (document.querySelector("[data-loading-container]")) {
+    tl.add(initDroppingCardsLoadingAnimation(), 0);
+  }
 
   return tl;
 }
@@ -458,5 +467,7 @@ function initDroppingCardsLoadingAnimation() {
       ease: "power4.in"
     }, "<-=1.5");
   }
+
+  return tl;
 }
 
